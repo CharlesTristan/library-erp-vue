@@ -1,12 +1,14 @@
 import { login, logout, getInfo } from '@/api/user'
-import { getToken, setToken, removeToken } from '@/utils/auth'
+import { getToken, setToken, removeToken, getRfreshToken, setRfreshToken, removeRfreshToken, setMenus } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
 const getDefaultState = () => {
   return {
-    token: getToken(),
+    authorization: getToken(),
+    refreshToken: getRfreshToken(),
     name: '',
-    avatar: ''
+    avatar: '',
+    menus: ''
   }
 }
 
@@ -17,7 +19,13 @@ const mutations = {
     Object.assign(state, getDefaultState())
   },
   SET_TOKEN: (state, token) => {
-    state.token = token
+    state.authorization = token
+  },
+  SET_REFRESH_TOKEN: (state, token) => {
+    state.refreshToken = token
+  },
+  SET_MENUS: (state, menus) => {
+    state.menus = menus
   },
   SET_NAME: (state, name) => {
     state.name = name
@@ -32,11 +40,18 @@ const actions = {
   login({ commit }, userInfo) {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
+      login({ username: username.trim(), password: password, type: 1 }).then(response => {
         const { data } = response
-        commit('SET_TOKEN', data.token)
-        setToken(data.token)
-        resolve()
+        // eslint-disable-next-line eqeqeq
+        if (response.code == 0) {
+          commit('SET_TOKEN', data.accessToken)
+          setToken(data.accessToken)
+          commit('SET_REFRESH_TOKEN', data.refreshToken)
+          setRfreshToken(data.refreshToken)
+          resolve()
+        } else {
+          reject(data)
+        }
       }).catch(error => {
         reject(error)
       })
@@ -46,17 +61,84 @@ const actions = {
   // get user info
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
-      getInfo(state.token).then(response => {
+      getInfo().then(response => {
         const { data } = response
 
         if (!data) {
           reject('Verification failed, please Login again.')
         }
 
-        const { name, avatar } = data
+        const { userInfoVO, menus } = data
+        // 如果没取到username的话，就会无限循环getInfo
+        const username = userInfoVO.username
 
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
+        // const menus = [
+        //   {
+        //     'path': '/organization',
+        //     'name': '组织管理',
+        //     'component': 'Layout',
+        //     'children': [
+        //       {
+        //         'path': '/organization/dept',
+        //         'name': '部门管理',
+        //         'component': 'organization/dept/index',
+        //         'children': [],
+        //         'meta': {
+        //           'title': '部门管理',
+        //           'icon': 'form'
+        //         }
+        //       },
+        //       {
+        //         'path': '/organization/user',
+        //         'name': '用户管理',
+        //         'component': 'organization/user/index',
+        //         'children': [],
+        //         'meta': {
+        //           'title': '用户管理',
+        //           'icon': 'form'
+        //         }
+        //       },
+        //       {
+        //         'path': '/organization/role/index',
+        //         'name': '角色管理',
+        //         'component': 'organization/role/index',
+        //         'children': [],
+        //         'meta': {
+        //           'title': '角色管理',
+        //           'icon': 'form'
+        //         }
+        //       },
+        //       {
+        //         'path': '/organization/menu',
+        //         'name': '菜单权限管理',
+        //         'component': 'organization/menu/index',
+        //         'children': [],
+        //         'meta': {
+        //           'title': '菜单权限管理',
+        //           'icon': 'form'
+        //         }
+        //       }
+        //     ],
+        //     'meta': {
+        //       'title': '组织管理',
+        //       'icon': 'form'
+        //     }
+        //   }
+        // ]
+        // 如果需要404 页面，请在此处添加
+        menus.push({
+          path: '/404',
+          component: '404',
+          hidden: true
+        }, {
+          path: '*',
+          redirect: '/404',
+          hidden: true
+        })
+        commit('SET_NAME', username)
+        // commit('SET_AVATAR', avatar)
+        commit('SET_MENUS', menus)
+        setMenus(menus)
         resolve(data)
       }).catch(error => {
         reject(error)
@@ -67,8 +149,9 @@ const actions = {
   // user logout
   logout({ commit, state }) {
     return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
+      logout(state.authorization).then(() => {
         removeToken() // must remove  token  first
+        removeRfreshToken()
         resetRouter()
         commit('RESET_STATE')
         resolve()
