@@ -1,5 +1,6 @@
 import request from '@/utils/request'
-
+// import { removeNullProperty } from '@/utils/util'
+// 登录
 export function login(data) {
   return request({
     url: '/api/login',
@@ -7,17 +8,38 @@ export function login(data) {
     data
   })
 }
-
-export function getInfo(token) {
+// 登录账号的信息
+export function getInfo() {
   return request({
     url: '/user/getInfo',
     method: 'get'
   })
 }
-
+// 退出登录
 export function logout() {
   return request({
     url: '/user/logout',
     method: 'post'
+  })
+}
+// 用户信息列表
+export function userInfo(data) {
+  return request({
+    url: '/user/userInfo',
+    method: 'get',
+    params: data
+  })
+}
+
+// 用户状态修改
+export function changeUserStatus(id, status) {
+  const data = {
+    id,
+    status
+  }
+  return request({
+    url: '/user/changeUserStatus',
+    method: 'put',
+    data: data
   })
 }
