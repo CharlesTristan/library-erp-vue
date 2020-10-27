@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import { praseStrEmpty } from '@/utils/util'
 // import { removeNullProperty } from '@/utils/util'
 // 登录
 export function login(data) {
@@ -41,5 +42,39 @@ export function changeUserStatus(id, status) {
     url: '/user/changeUserStatus',
     method: 'put',
     data: data
+  })
+}
+
+// id查用户
+export function getUser(data) {
+  return request({
+    url: '/user/' + praseStrEmpty(data),
+    method: 'get'
+  })
+}
+
+// 修改用户
+export function updateUser(data) {
+  return request({
+    url: '/user',
+    method: 'put',
+    data: data
+  })
+}
+
+// 添加用户
+export function inserUser(data) {
+  return request({
+    url: '/user',
+    method: 'post',
+    data: data
+  })
+}
+
+// 删除用户
+export function delUser(data) {
+  return request({
+    url: '/user/' + praseStrEmpty(data),
+    method: 'delete'
   })
 }
