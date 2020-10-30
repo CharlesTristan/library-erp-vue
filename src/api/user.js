@@ -1,6 +1,5 @@
 import request from '@/utils/request'
 import { praseStrEmpty } from '@/utils/util'
-// import { removeNullProperty } from '@/utils/util'
 // 登录
 export function login(data) {
   return request({
