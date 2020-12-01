@@ -413,7 +413,6 @@ export default {
       }).then(() => {
         that.getList()
       }).catch((e) => {
-        console.log('失败')
         row.status = row.status === '0' ? '1' : '0'
       })
     },

@@ -69,6 +69,7 @@
           icon="el-icon-delete"
           size="mini"
           :disabled="multiple"
+          @click="handleDelete"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -103,12 +104,6 @@
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
           >修改</el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-circle-check"
-            @click="handleDataScope(scope.row)"
-          >数据权限</el-button>
           <el-button
             size="mini"
             type="text"
@@ -211,7 +206,7 @@
 </template>
 
 <script>
-import { roleList, updateRole, insertRole, selectRole } from '@/api/role'
+import { roleList, updateRole, insertRole, selectRole, delRole } from '@/api/role'
 import { permissionList } from '@/api/permission'
 export default {
   name: 'Index',
@@ -240,7 +235,7 @@ export default {
         pageNum: 1,
         pageSize: 10,
         name: undefined,
-        description: undefined,
+        perms: undefined,
         status: undefined
       },
       roleList: [],
@@ -285,7 +280,7 @@ export default {
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.roleId)
+      this.ids = selection.map(item => item.id)
       // eslint-disable-next-line eqeqeq
       this.single = selection.length != 1
       this.multiple = !selection.length
@@ -313,6 +308,10 @@ export default {
       this.open = true
       this.title = '添加角色'
     },
+    initDefaultKeys() {
+      this.defaultPerKeys = []
+      this.$refs.menu.setCheckedKeys(this.defaultPerKeys)
+    },
     /** 提交按钮 */
     submitForm: function() {
       this.$refs['form'].validate(valid => {
@@ -335,6 +334,8 @@ export default {
           }
         }
       })
+      this.defaultPerKeys = []
+      this.initDefaultKeys()
     },
     // 所有菜单节点数据
     getMenuAllCheckedKeys() {
@@ -347,7 +348,6 @@ export default {
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-      console.log('8888888888888888888')
       permissionList().then(
         response => {
           const { data } = response
@@ -358,13 +358,15 @@ export default {
         const { data } = response
         this.form = data
         this.open = true
-        data.sysPermissions.filter((item) => {
-          // eslint-disable-next-line eqeqeq
-          if (item.type == 3) {
-            this.defaultPerKeys.push(item.id)
-          }
-        })
+        const tempPerKeys = []
+        this.defaultPerKeys = tempPerKeys
         this.$nextTick(() => {
+          data.sysPermissions.filter((item) => {
+            // eslint-disable-next-line eqeqeq
+            if (item.type == 3) {
+              tempPerKeys.push(item.id)
+            }
+          })
           this.$refs.menu.setCheckedKeys(this.defaultPerKeys)
         })
         this.title = '修改角色'
@@ -373,6 +375,10 @@ export default {
     },
     // 表单重置
     reset() {
+      // eslint-disable-next-line eqeqeq
+      if (this.$refs.menu != undefined) {
+        this.$refs.menu.setCheckedKeys([])
+      }
       this.form = {
         id: undefined,
         description: undefined,
@@ -381,6 +387,20 @@ export default {
       }
       this.resetForm('form')
       this.defaultPerKeys = []
+    },
+    /** 删除按钮操作 */
+    handleDelete(row) {
+      const roleIds = row.id || this.ids
+      this.$confirm('是否确认删除角色编号为"' + roleIds + '"的数据项?', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(function() {
+        return delRole(roleIds)
+      }).then(() => {
+        this.getList()
+        this.msgSuccess('删除成功')
+      })
     },
     // 取消按钮
     cancel() {

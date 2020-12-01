@@ -49,12 +49,7 @@ router.beforeEach(async(to, from, next) => {
           next()
         } catch (error) {
           console.log(error)
-          // console.log('88888888888888888888888888888888888')
-          // remove token and go to login page to re-login
-          // await store.dispatch('user/resetToken')
           Message.error(error || 'Has Error')
-          // next(`/login?redirect=${to.path}`)
-          // NProgress.done()
         }
       }
     }

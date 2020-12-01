@@ -1,6 +1,5 @@
-import { login, logout, getInfo } from '@/api/user'
+import { login, getInfo, refreshToken } from '@/api/user'
 import { getToken, setToken, removeToken, getRfreshToken, setRfreshToken, removeRfreshToken, setMenus } from '@/utils/auth'
-import { resetRouter } from '@/router'
 
 const getDefaultState = () => {
   return {
@@ -36,7 +35,7 @@ const mutations = {
 }
 
 const actions = {
-  // user login
+  // 用户登录
   login({ commit }, userInfo) {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
@@ -72,59 +71,6 @@ const actions = {
         // 如果没取到username的话，就会无限循环getInfo
         const username = userInfoVO.username
 
-        // const menus = [
-        //   {
-        //     'path': '/organization',
-        //     'name': '组织管理',
-        //     'component': 'Layout',
-        //     'children': [
-        //       {
-        //         'path': '/organization/dept',
-        //         'name': '部门管理',
-        //         'component': 'organization/dept/index',
-        //         'children': [],
-        //         'meta': {
-        //           'title': '部门管理',
-        //           'icon': 'form'
-        //         }
-        //       },
-        //       {
-        //         'path': '/organization/user',
-        //         'name': '用户管理',
-        //         'component': 'organization/user/index',
-        //         'children': [],
-        //         'meta': {
-        //           'title': '用户管理',
-        //           'icon': 'form'
-        //         }
-        //       },
-        //       {
-        //         'path': '/organization/role/index',
-        //         'name': '角色管理',
-        //         'component': 'organization/role/index',
-        //         'children': [],
-        //         'meta': {
-        //           'title': '角色管理',
-        //           'icon': 'form'
-        //         }
-        //       },
-        //       {
-        //         'path': '/organization/menu',
-        //         'name': '菜单权限管理',
-        //         'component': 'organization/menu/index',
-        //         'children': [],
-        //         'meta': {
-        //           'title': '菜单权限管理',
-        //           'icon': 'form'
-        //         }
-        //       }
-        //     ],
-        //     'meta': {
-        //       'title': '组织管理',
-        //       'icon': 'form'
-        //     }
-        //   }
-        // ]
         // 如果需要404 页面，请在此处添加
         menus.push({
           path: '/404',
@@ -146,18 +92,35 @@ const actions = {
     })
   },
 
-  // user logout
-  logout({ commit, state }) {
+  refreshToken({ commit, state }) {
     return new Promise((resolve, reject) => {
-      logout(state.authorization).then(() => {
-        removeToken() // must remove  token  first
-        removeRfreshToken()
-        resetRouter()
-        commit('RESET_STATE')
-        resolve()
+      refreshToken().then((response) => {
+        // eslint-disable-next-line eqeqeq
+        if (response.code == 0) {
+          const { data } = response
+          commit('SET_TOKEN', data.accessToken)
+          setToken(data.accessToken)
+          commit('SET_REFRESH_TOKEN', data.refreshToken)
+          setRfreshToken(data.refreshToken)
+          resolve()
+        } else {
+          reject()
+        }
       }).catch(error => {
         reject(error)
       })
+    })
+  },
+
+  // user logout
+  logout({ commit, state }) {
+    // const that = this
+    return new Promise((resolve, reject) => {
+      removeToken() // must remove  token  first
+      removeRfreshToken()
+      // 跳转到首页
+      location.href = '/index'
+      resolve()
     })
   },
 

@@ -16,7 +16,7 @@ import Pagination from '@/components/Pagination'
 import RightToolbar from '@/components/RightToolbar'
 import '@/icons' // icon
 import '@/permission' // permission control
-
+// import VueAMap from 'vue-amap' // 高德地图
 // 全局方法挂载
 Vue.prototype.parseTime = parseTime
 Vue.prototype.resetForm = resetForm
@@ -54,12 +54,19 @@ Vue.component('RightToolbar', RightToolbar)
 // Vue.use(ElementUI, { locale })
 // 如果想要中文版 element-ui，按如下方式声明
 Vue.use(ElementUI)
-
+// Vue.use(VueAMap)
 Vue.config.productionTip = false
 
+// VueAMap.initAMapApiLoader({
+//   key: 'b94ff97c1824e12f54336f618d0b208d',
+//   plugin: ['AMap.Autocomplete', 'AMap.PlaceSearch', 'AMap.Scale', 'AMap.OverView', 'AMap.ToolBar', 'AMap.MapType', 'AMap.PolyEditor', 'AMap.CircleEditor', 'AMap.Geolocation'],
+//   // 默认高德 sdk 版本为 1.4.4
+//   v: '1.3.4'
+// })
 new Vue({
   el: '#app',
   router,
   store,
   render: h => h(App)
 })
+

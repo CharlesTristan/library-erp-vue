@@ -69,6 +69,11 @@ export function addDateRange(params, dateRange) {
 // 回显数据字典
 export function selectDictLabel(datas, value) {
   var actions = []
+  // Object.keys(obj) 返回值：一个表示给定对象的所有可枚举属性的字符串数组
+  // some() 方法用于检测数组中的元素是否满足指定条件（函数提供）。
+  // some() 方法会依次执行数组的每个元素：
+  // 如果有一个元素满足条件，则表达式返回true , 剩余的元素不会再执行检测。
+  // 如果没有满足条件的元素，则返回false。
   Object.keys(datas).some((key) => {
     // eslint-disable-next-line eqeqeq
     if (datas[key].dictValue == ('' + value)) {
@@ -76,6 +81,8 @@ export function selectDictLabel(datas, value) {
       return true
     }
   })
+  // join() 方法用于把数组中的所有元素放入一个字符串。
+  // 元素是通过指定的分隔符进行分隔的。
   return actions.join('')
 }
 
@@ -131,25 +138,53 @@ export function praseStrEmpty(str) {
  * @param {*} children 孩子节点字段 默认 'children'
  * @param {*} rootId 根Id 默认 0
  */
-export function handleTree(data, id, parentId, children, rootId) {
-  id = id || 'id'
-  parentId = parentId || 'parentId'
-  children = children || 'children'
-  rootId = rootId || Math.min.apply(Math, data.map(item => { return item[parentId] })) || 0
-  // 对源数据深度克隆
-  const cloneData = JSON.parse(JSON.stringify(data))
-  // 循环所有项
-  const treeData = cloneData.filter(father => {
-    const branchArr = cloneData.filter(child => {
-      // 返回每一项的子级数组
-      return father[id] === child[parentId]
-    })
-    branchArr.length > 0 ? father.children = branchArr : ''
-    // 返回第一层
-    return father[parentId] === rootId
+export function handleTree(data) {
+  // id = id || 'id'
+  // pid = pid || 'pid'
+  // children = children || 'children'
+  // rootId = rootId || Math.min.apply(Math, data.map(item => { return item[pid] })) || 0
+  // // 对源数据深度克隆
+  // const cloneData = JSON.parse(JSON.stringify(data))
+  // // 循环所有项
+  // const treeData = cloneData.filter(father => {
+  //   const branchArr = cloneData.filter(child => {
+  //     // 返回每一项的子级数组
+  //     return father[id] === child[pid]
+  //   })
+  //   branchArr.length > 0 ? father.children = branchArr : ''
+  //   // 返回第一层
+  //   return father[pid] === rootId
+  // })
+  // // eslint-disable-next-line eqeqeq
+  // return treeData != '' ? treeData : data
+  const treeData = []
+  data.forEach((item, index) => {
+    // eslint-disable-next-line eqeqeq
+    if (item.pid == '0') {
+      // eslint-disable-next-line no-array-constructor
+      const aArray = new Array()
+
+      data.forEach((a, index) => {
+        // eslint-disable-next-line eqeqeq
+        if (a.pid == item.id) {
+          // eslint-disable-next-line no-array-constructor
+          const bArray = new Array()
+
+          data.forEach((b, index) => {
+            // eslint-disable-next-line eqeqeq
+            if (b.pid == a.id) {
+              bArray.push(b)
+            }
+          })
+          item.children = bArray
+          aArray.push(item)
+        }
+      })
+      item.children = aArray
+      treeData.push(item)
+    }
   })
-  // eslint-disable-next-line eqeqeq
-  return treeData != '' ? treeData : data
+  return treeData
 }
 
 /**
@@ -157,12 +192,10 @@ export function handleTree(data, id, parentId, children, rootId) {
  * @constructor
  */
 export function removeNullProperty(obj) {
-  console.log(obj)
   const newObj = Object.keys(obj).forEach(item => {
     if (!obj[item]) {
       delete obj[item]
     }
   })
-  console.log(newObj)
   return newObj
 }

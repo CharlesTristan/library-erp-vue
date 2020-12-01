@@ -1,5 +1,6 @@
 import request from '@/utils/request'
 import { praseStrEmpty } from '@/utils/util'
+import store from '@/store'
 // 登录
 export function login(data) {
   return request({
@@ -75,5 +76,15 @@ export function delUser(data) {
   return request({
     url: '/user/' + praseStrEmpty(data),
     method: 'delete'
+  })
+}
+// 刷新token
+export function refreshToken(data) {
+  return request({
+    headers: {
+      'refreshToken': store.getters.refreshToken
+    },
+    url: '/user/refreshToken',
+    method: 'get'
   })
 }
